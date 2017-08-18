@@ -642,6 +642,10 @@ $ open -a Chromium.app http://localhost:8000/stress.html
 
 For a much smaller test, run `make test_misc`.
 
+### NOTE
+
+Please use uglify-js@2.
+
 ## Contributing
 
 Due to the precarious nature of the Open Specifications Promise, it is very

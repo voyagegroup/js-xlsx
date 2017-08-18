@@ -24,7 +24,7 @@
 		"xlsjs":"",
 		"uglify-js":""
 	},
-	"repository": { "type":"git", "url":"git://github.com/protobi/js-xlsx.git#beta" },
+	"repository": { "type":"git", "url":"git://github.com/GoldSpotMediaJapan/js-xlsx.git" },
 	"scripts": {
 		"pretest": "git submodule init && git submodule update",
 		"test": "make test"
@@ -34,7 +34,7 @@
 			"pattern": "xlsx.js"
 		}
 	},
-	"bugs": { "url": "https://github.com/protobi/js-xlsx/issues" },
+	"bugs": { "url": "https://github.com/GoldSpotMediaJapan/js-xlsx/issues" },
 	"license": "Apache-2.0",
 	"engines": { "node": ">=0.8" }
 }
