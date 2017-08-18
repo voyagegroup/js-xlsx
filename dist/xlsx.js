@@ -4,7 +4,7 @@
 /*jshint funcscope:true, eqnull:true */
 var XLSX = {};
 (function make_xlsx(XLSX){
-XLSX.version = '0.8.11';
+XLSX.version = '0.8.13';
 var current_codepage = 1200, current_cptable;
 if(typeof module !== "undefined" && typeof require !== 'undefined') {
 	if(typeof cptable === 'undefined') cptable = require('./dist/cpexcel');
@@ -7595,6 +7595,20 @@ function parse_ws_xml(data, opts, rels) {
 	return s;
 }
 
+function write_ws_xml_sheetpr(sheetpr) {
+	if(sheetpr.length == 0) return "";
+	var o = '<sheetPr>';
+	for(var i in sheetpr) {
+    for(var j in sheetpr[i]){
+      o += '<' + j;
+      for(var k in sheetpr[i][j])
+        o += ' ' + k + '="' + sheetpr[i][j][k] + '"';
+      o += '/>'
+    }
+  }
+	return o + '</sheetPr>';
+}
+
 function write_ws_xml_merges(merges) {
 	if(merges.length == 0) return "";
 	var o = '<mergeCells count="' + merges.length + '">';
@@ -7669,7 +7683,7 @@ function write_ws_xml_cols(ws, cols) {
 }
 
 function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
-	if(cell.v === undefined && cell.s === undefined) return "";
+	if(cell.v === undefined && cell.s === undefined && (!cell.f)) return "";
 	var vv = "";
 	var oldt = cell.t, oldv = cell.v;
 	switch(cell.t) {
@@ -7686,7 +7700,7 @@ function write_ws_xml_cell(cell, ref, ws, opts, idx, wb) {
 			break;
 		default: vv = cell.v; break;
 	}
-	var v = writetag('v', escapexml(vv)), o = {r:ref};
+	var v = (cell.f ? writetag('f', escapexml(cell.f)) : writetag('v', escapexml(vv))), o = {r:ref};
 	/* TODO: cell style */
 	var os = get_cell_style(opts.cellXfs, cell, opts);
 	if(os !== 0) o.s = os;
@@ -7836,6 +7850,7 @@ function write_ws_xml(idx, opts, wb) {
 	var s = wb.SheetNames[idx], sidx = 0, rdata = "";
 	var ws = wb.Sheets[s];
 	if(ws === undefined) ws = {};
+	if(ws['!sheetPr'] !== undefined && ws['!sheetPr'].length > 0) o[o.length] = (write_ws_xml_sheetpr(ws['!sheetPr']));
 	var ref = ws['!ref']; if(ref === undefined) ref = 'A1';
 	o[o.length] = (writextag('dimension', null, {'ref': ref}));
 
@@ -8579,23 +8594,19 @@ function write_wb_xml(wb, opts) {
     for(var i = 0; i != wb.SheetNames.length; ++i) {
       var sheetName = wb.SheetNames[i];
       var sheet = wb.Sheets[sheetName]
-      if (sheet['!printHeader'])
-        var range = "'" + sheetName + "'!" + sheet['!printHeader'];
-      console.log("!!!!"+range)
+      if (sheet['!printHeader']) {
+          var printHeader = sheet['!printHeader'];
+
+        var range = "'" + sheetName + "'!$" + printHeader[0] + ":$" + printHeader[1];
+
         o[o.length] = (writextag('definedName', range, {
           "name":"_xlnm.Print_Titles",
           localSheetId : ''+i
         }))
     }
+    }
     o[o.length] = '</definedNames>';
   }
-
-
-
-//  <definedNames>
-//  <definedName name="_xlnm.Print_Titles" localSheetId="0">Sheet1!$1:$1</definedName>
-//  <definedName name="_xlnm.Print_Titles" localSheetId="1">Sheet2!$1:$2</definedName>
-//  </definedNames>
 
 	if(o.length>2){ o[o.length] = '</workbook>'; o[1]=o[1].replace("/>",">"); }
 	return o.join("");
